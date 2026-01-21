@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frossen Februar - No-Spend Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --base: #e0e5ec;
+            --text: #5a6a7d;
+            --text-dark: #3d4856;
+            --shadow-dark: rgba(163, 177, 198, 0.6);
+            --shadow-light: rgba(255, 255, 255, 0.9);
+            --green: #6ec299;
+            --yellow: #f5d576;
+            --red: #e8897b;
+            --green-shadow-dark: rgba(110, 194, 153, 0.3);
+            --green-shadow-light: rgba(110, 194, 153, 0.1);
+            --yellow-shadow-dark: rgba(245, 213, 118, 0.3);
+            --yellow-shadow-light: rgba(245, 213, 118, 0.1);
+            --red-shadow-dark: rgba(232, 137, 123, 0.3);
+            --red-shadow-light: rgba(232, 137, 123, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--base);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+            letter-spacing: 0.5px;
+        }
+
+        .calendar {
+            background: var(--base);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow:
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+            margin-bottom: 2rem;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text);
+            padding: 0.5rem 0;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--base);
+            box-shadow:
+                4px 4px 8px var(--shadow-dark),
+                -4px -4px 8px var(--shadow-light);
+            user-select: none;
+        }
+
+        .day.empty {
+            background: transparent;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        .day.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .day.today {
+            color: var(--text-dark);
+            font-weight: 700;
+            position: relative;
+        }
+
+        .day.today::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--text-dark);
+        }
+
+        .day:not(.empty):not(.disabled):hover {
+            transform: translateY(-1px);
+        }
+
+        .day:not(.empty):not(.disabled):active {
+            box-shadow:
+                inset 2px 2px 4px var(--shadow-dark),
+                inset -2px -2px 4px var(--shadow-light);
+            transform: translateY(0);
+        }
+
+        .day.green {
+            background: var(--green);
+            color: white;
+            box-shadow:
+                4px 4px 8px var(--green-shadow-dark),
+                -4px -4px 8px var(--green-shadow-light),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .day.green:active {
+            box-shadow:
+                inset 2px 2px 4px var(--green-shadow-dark),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        .day.yellow {
+            background: var(--yellow);
+            color: var(--text-dark);
+            box-shadow:
+                4px 4px 8px var(--yellow-shadow-dark),
+                -4px -4px 8px var(--yellow-shadow-light),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .day.yellow:active {
+            box-shadow:
+                inset 2px 2px 4px var(--yellow-shadow-dark),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        .day.red {
+            background: var(--red);
+            color: white;
+            box-shadow:
+                4px 4px 8px var(--red-shadow-dark),
+                -4px -4px 8px var(--red-shadow-light),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .day.red:active {
+            box-shadow:
+                inset 2px 2px 4px var(--red-shadow-dark),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        .legend {
+            background: var(--base);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow:
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+            margin-bottom: 2rem;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            box-shadow:
+                2px 2px 4px var(--shadow-dark),
+                -2px -2px 4px var(--shadow-light);
+        }
+
+        .legend-color.green {
+            background: var(--green);
+        }
+
+        .legend-color.yellow {
+            background: var(--yellow);
+        }
+
+        .legend-color.red {
+            background: var(--red);
+        }
+
+        .legend-label {
+            font-size: 0.875rem;
+            color: var(--text);
+        }
+
+        .stats {
+            background: var(--base);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow:
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+        }
+
+        .stats-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .calendar {
+                padding: 1.5rem;
+            }
+
+            .calendar-grid {
+                gap: 8px;
+            }
+
+            .day {
+                font-size: 0.875rem;
+            }
+
+            .weekday {
+                font-size: 0.75rem;
+            }
+
+            .legend, .stats {
+                padding: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Frossen Februar</h1>
+
+        <div class="calendar">
+            <div class="calendar-header">
+                <div class="weekday">Man</div>
+                <div class="weekday">Tir</div>
+                <div class="weekday">Ons</div>
+                <div class="weekday">Tor</div>
+                <div class="weekday">Fre</div>
+                <div class="weekday">Lør</div>
+                <div class="weekday">Søn</div>
+            </div>
+            <div class="calendar-grid" id="calendar"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-title">Forklaring</div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-color green"></div>
+                    <div class="legend-label">Ingen forbruk</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color yellow"></div>
+                    <div class="legend-label">Planlagt forbruk</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color red"></div>
+                    <div class="legend-label">Uplanlagt forbruk</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stats-title">Statistikk</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="greenCount">0</div>
+                    <div class="stat-label">Ingen</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="yellowCount">0</div>
+                    <div class="stat-label">Planlagt</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="redCount">0</div>
+                    <div class="stat-label">Uplanlagt</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'frossenFebruar2026';
+        const currentYear = 2026;
+        const currentMonth = 1; // February (0-indexed)
+
+        let dayStates = loadStates();
+
+        function loadStates() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        function saveStates() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dayStates));
+        }
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function getFirstDayOfMonth(year, month) {
+            const day = new Date(year, month, 1).getDay();
+            return day === 0 ? 6 : day - 1; // Convert to Monday-start (0 = Monday)
+        }
+
+        function isToday(day) {
+            const today = new Date();
+            return today.getFullYear() === currentYear &&
+                   today.getMonth() === currentMonth &&
+                   today.getDate() === day;
+        }
+
+        function isFuture(day) {
+            const today = new Date();
+            const checkDate = new Date(currentYear, currentMonth, day);
+            today.setHours(0, 0, 0, 0);
+            checkDate.setHours(0, 0, 0, 0);
+            return checkDate > today;
+        }
+
+        function cycleState(day) {
+            const key = `${currentYear}-${currentMonth}-${day}`;
+            const states = ['', 'green', 'yellow', 'red'];
+            const currentState = dayStates[key] || '';
+            const currentIndex = states.indexOf(currentState);
+            const nextIndex = (currentIndex + 1) % states.length;
+            const nextState = states[nextIndex];
+
+            if (nextState === '') {
+                delete dayStates[key];
+            } else {
+                dayStates[key] = nextState;
+            }
+
+            saveStates();
+            updateStats();
+        }
+
+        function updateStats() {
+            let green = 0, yellow = 0, red = 0;
+
+            Object.values(dayStates).forEach(state => {
+                if (state === 'green') green++;
+                else if (state === 'yellow') yellow++;
+                else if (state === 'red') red++;
+            });
+
+            document.getElementById('greenCount').textContent = green;
+            document.getElementById('yellowCount').textContent = yellow;
+            document.getElementById('redCount').textContent = red;
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+            const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
+
+            calendar.innerHTML = '';
+
+            // Empty cells before first day
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'day empty';
+                calendar.appendChild(emptyDiv);
+            }
+
+            // Days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day';
+                dayDiv.textContent = day;
+
+                const key = `${currentYear}-${currentMonth}-${day}`;
+                const state = dayStates[key];
+                if (state) {
+                    dayDiv.classList.add(state);
+                }
+
+                if (isToday(day)) {
+                    dayDiv.classList.add('today');
+                }
+
+                if (isFuture(day)) {
+                    dayDiv.classList.add('disabled');
+                } else {
+                    dayDiv.addEventListener('click', () => {
+                        cycleState(day);
+                        renderCalendar();
+                    });
+                }
+
+                calendar.appendChild(dayDiv);
+            }
+
+            updateStats();
+        }
+
+        renderCalendar();
+    </script>
+</body>
+</html>

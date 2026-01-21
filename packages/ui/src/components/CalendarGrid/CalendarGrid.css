@@ -1,0 +1,25 @@
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-grid__header {
+  text-align: center;
+  font-size: clamp(0.7rem, 2vw, 0.9rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 0;
+  border-bottom: 2px solid #000000;
+}
+
+.calendar-grid__empty {
+  /* Empty cell for days before month starts */
+}
+
+@media (max-width: 640px) {
+  .calendar-grid {
+    gap: 4px;
+  }
+}

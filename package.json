@@ -1,0 +1,13 @@
+{
+  "name": "frossen-februar",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @frossen/app dev",
+    "storybook": "pnpm --filter @frossen/ui storybook",
+    "build": "pnpm --filter @frossen/ui build && pnpm --filter @frossen/app build",
+    "build:storybook": "pnpm --filter @frossen/ui build-storybook",
+    "test": "pnpm test:e2e && pnpm test:storybook",
+    "test:e2e": "pnpm --filter @frossen/e2e test",
+    "test:storybook": "pnpm --filter @frossen/ui test:storybook"
+  }
+}

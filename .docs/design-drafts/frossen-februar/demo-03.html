@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frossen Februar - Neon Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ffff;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.03) 2px, rgba(0, 255, 255, 0.03) 4px);
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      color: #ff00ff;
+      text-shadow:
+        0 0 10px #ff00ff,
+        0 0 20px #ff00ff,
+        0 0 30px #ff00ff,
+        0 0 40px #ff00ff;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        text-shadow:
+          0 0 10px #ff00ff,
+          0 0 20px #ff00ff,
+          0 0 30px #ff00ff,
+          0 0 40px #ff00ff;
+      }
+      50% {
+        text-shadow:
+          0 0 20px #ff00ff,
+          0 0 30px #ff00ff,
+          0 0 40px #ff00ff,
+          0 0 50px #ff00ff;
+      }
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-bottom: 30px;
+      color: #00ffff;
+      text-shadow: 0 0 5px #00ffff;
+      letter-spacing: 2px;
+    }
+
+    .calendar {
+      background: rgba(20, 20, 20, 0.8);
+      border: 2px solid #00ffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow:
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.05);
+      margin-bottom: 30px;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .weekday {
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 8px;
+      color: #00ffff;
+      text-shadow: 0 0 5px #00ffff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: bold;
+      border: 2px solid #333;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(30, 30, 30, 0.5);
+      color: #666;
+      position: relative;
+    }
+
+    .day:not(.empty):not(.future):hover {
+      transform: scale(1.05);
+      border-color: #00ffff;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+
+    .day.empty {
+      visibility: hidden;
+    }
+
+    .day.future {
+      cursor: not-allowed;
+      opacity: 0.3;
+      background: rgba(20, 20, 20, 0.3);
+    }
+
+    .day.today {
+      border-color: #ff00ff;
+      box-shadow: 0 0 15px rgba(255, 0, 255, 0.6);
+      animation: todayPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes todayPulse {
+      0%, 100% {
+        box-shadow: 0 0 15px rgba(255, 0, 255, 0.6);
+      }
+      50% {
+        box-shadow: 0 0 25px rgba(255, 0, 255, 0.9);
+      }
+    }
+
+    .day.success {
+      background: rgba(0, 255, 0, 0.2);
+      border-color: #00ff00;
+      color: #00ff00;
+      text-shadow: 0 0 8px #00ff00;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+    }
+
+    .day.minor {
+      background: rgba(255, 255, 0, 0.2);
+      border-color: #ffff00;
+      color: #ffff00;
+      text-shadow: 0 0 8px #ffff00;
+      box-shadow: 0 0 15px rgba(255, 255, 0, 0.4);
+    }
+
+    .day.fail {
+      background: rgba(255, 0, 100, 0.2);
+      border-color: #ff0064;
+      color: #ff0064;
+      text-shadow: 0 0 8px #ff0064;
+      box-shadow: 0 0 15px rgba(255, 0, 100, 0.4);
+    }
+
+    .legend {
+      background: rgba(20, 20, 20, 0.8);
+      border: 2px solid #ff00ff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow:
+        0 0 20px rgba(255, 0, 255, 0.3),
+        inset 0 0 20px rgba(255, 0, 255, 0.05);
+    }
+
+    .legend h3 {
+      margin-bottom: 15px;
+      color: #ff00ff;
+      text-shadow: 0 0 10px #ff00ff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 1rem;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .legend-box {
+      width: 30px;
+      height: 30px;
+      border-radius: 4px;
+      border: 2px solid;
+      flex-shrink: 0;
+    }
+
+    .legend-box.success {
+      background: rgba(0, 255, 0, 0.2);
+      border-color: #00ff00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+    }
+
+    .legend-box.minor {
+      background: rgba(255, 255, 0, 0.2);
+      border-color: #ffff00;
+      box-shadow: 0 0 10px rgba(255, 255, 0, 0.4);
+    }
+
+    .legend-box.fail {
+      background: rgba(255, 0, 100, 0.2);
+      border-color: #ff0064;
+      box-shadow: 0 0 10px rgba(255, 0, 100, 0.4);
+    }
+
+    .legend-text {
+      color: #00ffff;
+      text-shadow: 0 0 3px #00ffff;
+    }
+
+    .stats {
+      background: rgba(20, 20, 20, 0.8);
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow:
+        0 0 20px rgba(0, 255, 0, 0.3),
+        inset 0 0 20px rgba(0, 255, 0, 0.05);
+    }
+
+    .stats h3 {
+      margin-bottom: 15px;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 1rem;
+    }
+
+    .stat-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid #333;
+      border-radius: 4px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    .stat-value.success {
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+    }
+
+    .stat-value.minor {
+      color: #ffff00;
+      text-shadow: 0 0 10px #ffff00;
+    }
+
+    .stat-value.fail {
+      color: #ff0064;
+      text-shadow: 0 0 10px #ff0064;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #00ffff;
+      text-shadow: 0 0 3px #00ffff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+      }
+
+      .subtitle {
+        font-size: 0.8rem;
+      }
+
+      .calendar {
+        padding: 15px;
+      }
+
+      .day {
+        font-size: 0.9rem;
+      }
+
+      .weekday {
+        font-size: 0.7rem;
+        padding: 6px;
+      }
+
+      .stat-items {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .days {
+        gap: 4px;
+      }
+
+      .weekdays {
+        gap: 4px;
+      }
+
+      .day {
+        font-size: 0.8rem;
+      }
+
+      .weekday {
+        font-size: 0.65rem;
+        padding: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Frossen Februar</h1>
+    <div class="subtitle">// NO-SPEND CHALLENGE 2026 //</div>
+
+    <div class="calendar">
+      <div class="weekdays">
+        <div class="weekday">Man</div>
+        <div class="weekday">Tir</div>
+        <div class="weekday">Ons</div>
+        <div class="weekday">Tor</div>
+        <div class="weekday">Fre</div>
+        <div class="weekday">Lør</div>
+        <div class="weekday">Søn</div>
+      </div>
+      <div class="days" id="calendar"></div>
+    </div>
+
+    <div class="legend">
+      <h3>Legend</h3>
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-box success"></div>
+          <span class="legend-text">Grønn: Ingen forbruk</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box minor"></div>
+          <span class="legend-text">Gul: Mindre forbruk (< 200kr)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box fail"></div>
+          <span class="legend-text">Rød: Større forbruk (≥ 200kr)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <h3>Statistikk</h3>
+      <div class="stat-items">
+        <div class="stat-item">
+          <span class="stat-value success" id="successCount">0</span>
+          <span class="stat-label">Perfekte dager</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value minor" id="minorCount">0</span>
+          <span class="stat-label">Mindre forbruk</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value fail" id="failCount">0</span>
+          <span class="stat-label">Større forbruk</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'frossenFebruar2026';
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const currentDay = currentDate.getDate();
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function getFirstDayOfMonth(year, month) {
+      const firstDay = new Date(year, month, 1).getDay();
+      return firstDay === 0 ? 6 : firstDay - 1;
+    }
+
+    function loadState() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    }
+
+    function saveState(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function cycleState(currentState) {
+      const states = [null, 'success', 'minor', 'fail'];
+      const currentIndex = states.indexOf(currentState);
+      const nextIndex = (currentIndex + 1) % states.length;
+      return states[nextIndex];
+    }
+
+    function updateStats(state) {
+      const stats = {
+        success: 0,
+        minor: 0,
+        fail: 0
+      };
+
+      Object.values(state).forEach(status => {
+        if (status && stats.hasOwnProperty(status)) {
+          stats[status]++;
+        }
+      });
+
+      document.getElementById('successCount').textContent = stats.success;
+      document.getElementById('minorCount').textContent = stats.minor;
+      document.getElementById('failCount').textContent = stats.fail;
+    }
+
+    function renderCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      const state = loadState();
+      const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+      const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
+
+      calendarEl.innerHTML = '';
+
+      for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'day empty';
+        calendarEl.appendChild(emptyDay);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'day';
+        dayEl.textContent = day;
+        dayEl.dataset.day = day;
+
+        const isFuture = day > currentDay;
+        const isToday = day === currentDay;
+
+        if (isFuture) {
+          dayEl.classList.add('future');
+        } else {
+          const status = state[day];
+          if (status) {
+            dayEl.classList.add(status);
+          }
+
+          dayEl.addEventListener('click', () => {
+            const currentStatus = state[day] || null;
+            const newStatus = cycleState(currentStatus);
+
+            if (newStatus === null) {
+              delete state[day];
+            } else {
+              state[day] = newStatus;
+            }
+
+            saveState(state);
+            renderCalendar();
+            updateStats(state);
+          });
+        }
+
+        if (isToday) {
+          dayEl.classList.add('today');
+        }
+
+        calendarEl.appendChild(dayEl);
+      }
+
+      updateStats(state);
+    }
+
+    renderCalendar();
+  </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+# @frossen/ui - Component Library Rules
+
+## Vue 3 Component Pattern
+
+All components use `<script setup lang="ts">`:
+
+```vue
+<script setup lang="ts">
+import type { SomeType } from '../../types';
+
+const props = defineProps<{
+  propName: Type;
+  optionalProp?: Type;
+}>();
+
+const emit = defineEmits<{
+  eventName: [];
+  eventWithPayload: [value: Type];
+}>();
+
+// Component logic here
+</script>
+
+<template>
+  <div class="component-name">
+    <!-- Template here -->
+  </div>
+</template>
+
+<style scoped src="./ComponentName.css"></style>
+```
+
+## Component Folder Structure
+
+```
+src/components/
+  ComponentName/
+    ComponentName.vue    # Component logic and template
+    ComponentName.css    # Scoped styles
+```
+
+## CSS Class Naming
+
+BEM-like pattern:
+- `.component-name` - Block (root element)
+- `.component-name--modifier` - Modifier (state variation)
+- `.component-name__element` - Element (child)
+
+Example from DayCell:
+```css
+.day-cell { }
+.day-cell--success { }
+.day-cell--warning { }
+.day-cell--fail { }
+.day-cell--today { }
+.day-cell--disabled { }
+```
+
+## Design Tokens
+
+Import from `src/styles/tokens.css`. Use CSS custom properties:
+
+```css
+.component {
+  color: var(--color-text);
+  background: var(--color-bg);
+  padding: var(--space-md);
+  font-size: var(--font-size-base);
+}
+```
+
+Available tokens:
+- Colors: `--color-bg`, `--color-text`, `--color-success`, `--color-warning`, `--color-fail`
+- Spacing: `--space-xs` through `--space-2xl`
+- Typography: `--font-size-xs` through `--font-size-stat`
+- Layout: `--max-width`, `--touch-target`
+
+## Storybook Stories
+
+Use CSF3 format with Meta/StoryObj:
+
+```typescript
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { userEvent, within, expect } from 'storybook/test';
+import ComponentName from '../components/ComponentName/ComponentName.vue';
+import type { SomeType } from '../types';
+
+const meta = {
+  title: 'Components/ComponentName',
+  component: ComponentName,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+} satisfies Meta<typeof ComponentName>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {
+    prop: 'value',
+  },
+};
+
+export const WithInteraction: Story = {
+  args: { ... },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const button = canvas.getByRole('button');
+    await userEvent.click(button);
+    await expect(button).toHaveClass('expected-class');
+  },
+};
+```
+
+## Type Exports
+
+Export all public types from `src/types/index.ts`:
+
+```typescript
+export type DayState = 'success' | 'warning' | 'fail';
+```
+
+Components import types relatively:
+```typescript
+import type { DayState } from '../../types';
+```
+
+## Mobile-First CSS
+
+Write base styles for mobile, add breakpoints for larger screens:
+
+```css
+.component {
+  /* Mobile (default) */
+  flex-direction: column;
+  padding: var(--space-sm);
+}
+
+@media (min-width: 768px) {
+  .component {
+    /* Tablet and up */
+    flex-direction: row;
+    padding: var(--space-md);
+  }
+}
+```
+
+Never use `max-width` media queries.
+
+## Touch Targets
+
+Buttons and interactive elements must be at least 44x44px:
+
+```css
+.button {
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+}
+```

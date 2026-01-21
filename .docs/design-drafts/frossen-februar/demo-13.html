@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frossen Februar - Condensed Stacked</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(1rem, 3vw, 2rem);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* Ultra-condensed title - vertically stacked letters */
+        .title {
+            font-weight: 900;
+            font-stretch: ultra-condensed;
+            letter-spacing: -0.05em;
+            text-align: center;
+            margin-bottom: clamp(2rem, 5vw, 3rem);
+            line-height: 0.75;
+        }
+
+        .title-line {
+            font-size: clamp(3.5rem, 12vw, 5.5rem);
+            display: block;
+            text-transform: uppercase;
+        }
+
+        .title-line:first-child {
+            color: #60a5fa;
+            text-shadow: 0 0 30px rgba(96, 165, 250, 0.3);
+        }
+
+        .title-line:last-child {
+            color: #ffffff;
+            margin-top: -0.15em;
+        }
+
+        /* Vertical stacked statistics */
+        .stats {
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: clamp(2rem, 5vw, 3rem);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(0.75rem, 2vw, 1rem) 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: 900;
+            font-stretch: condensed;
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: clamp(0.5rem, 2vw, 0.75rem);
+        }
+
+        .stat-dot {
+            width: clamp(14px, 4vw, 18px);
+            height: clamp(14px, 4vw, 18px);
+            border-radius: 50%;
+            border: 3px solid currentColor;
+            flex-shrink: 0;
+        }
+
+        .stat-dot.green {
+            background: #22c55e;
+            border-color: #22c55e;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+
+        .stat-dot.yellow {
+            background: #eab308;
+            border-color: #eab308;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
+        }
+
+        .stat-dot.red {
+            background: #ef4444;
+            border-color: #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .stat-value {
+            font-weight: 900;
+            font-size: clamp(2rem, 6vw, 3rem);
+            font-stretch: ultra-condensed;
+            letter-spacing: -0.03em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Compact calendar */
+        .calendar {
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: clamp(1rem, 3vw, 1.5rem);
+            backdrop-filter: blur(10px);
+        }
+
+        .calendar-header {
+            font-weight: 900;
+            font-stretch: condensed;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin-bottom: clamp(1rem, 3vw, 1.5rem);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: clamp(4px, 1vw, 6px);
+            margin-bottom: clamp(6px, 1.5vw, 8px);
+        }
+
+        .weekday {
+            font-weight: 900;
+            font-stretch: condensed;
+            font-size: clamp(0.7rem, 2vw, 0.85rem);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: clamp(4px, 1vw, 6px);
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-stretch: condensed;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+            position: relative;
+        }
+
+        .day:hover:not(.disabled):not(.empty) {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .day.empty {
+            border: none;
+            background: transparent;
+            cursor: default;
+        }
+
+        .day.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .day.today {
+            border: 3px solid #60a5fa;
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+        }
+
+        .day.green {
+            background: rgba(34, 197, 94, 0.25);
+            border-color: #22c55e;
+            color: #ffffff;
+        }
+
+        .day.yellow {
+            background: rgba(234, 179, 8, 0.25);
+            border-color: #eab308;
+            color: #ffffff;
+        }
+
+        .day.red {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            color: #ffffff;
+        }
+
+        /* Condensed legend */
+        .legend {
+            margin-top: clamp(1.5rem, 4vw, 2rem);
+            padding: clamp(1rem, 3vw, 1.5rem);
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+        }
+
+        .legend-title {
+            font-weight: 900;
+            font-stretch: condensed;
+            font-size: clamp(0.85rem, 2.5vw, 1rem);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: clamp(0.75rem, 2vw, 1rem);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.5rem, 1.5vw, 0.75rem);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.5rem, 2vw, 0.75rem);
+            font-size: clamp(0.8rem, 2.2vw, 0.95rem);
+            font-weight: 600;
+            font-stretch: condensed;
+        }
+
+        .legend-dot {
+            width: clamp(12px, 3vw, 16px);
+            height: clamp(12px, 3vw, 16px);
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            flex-shrink: 0;
+        }
+
+        .legend-dot.green {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+
+        .legend-dot.yellow {
+            background: #eab308;
+            border-color: #eab308;
+        }
+
+        .legend-dot.red {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .stats {
+                padding: 2.5rem;
+            }
+
+            .calendar {
+                padding: 2rem;
+            }
+
+            .legend-items {
+                flex-direction: row;
+                justify-content: space-around;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">
+            <span class="title-line">Frossen</span>
+            <span class="title-line">Februar</span>
+        </h1>
+
+        <div class="stats">
+            <div class="stat-row">
+                <div class="stat-label">
+                    <div class="stat-dot green"></div>
+                    Ingen forbruk
+                </div>
+                <div class="stat-value" id="stat-green">0</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">
+                    <div class="stat-dot yellow"></div>
+                    Nødvendig
+                </div>
+                <div class="stat-value" id="stat-yellow">0</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">
+                    <div class="stat-dot red"></div>
+                    Unødvendig
+                </div>
+                <div class="stat-value" id="stat-red">0</div>
+            </div>
+        </div>
+
+        <div class="calendar">
+            <div class="calendar-header">Februar 2026</div>
+            <div class="weekdays">
+                <div class="weekday">Man</div>
+                <div class="weekday">Tir</div>
+                <div class="weekday">Ons</div>
+                <div class="weekday">Tor</div>
+                <div class="weekday">Fre</div>
+                <div class="weekday">Lør</div>
+                <div class="weekday">Søn</div>
+            </div>
+            <div class="days" id="calendar-days"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-title">Klikk for å endre status</div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-dot green"></div>
+                    <span>Ingen forbruk</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot yellow"></div>
+                    <span>Nødvendig forbruk</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot red"></div>
+                    <span>Unødvendig forbruk</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'frossenFebruarData';
+        const today = new Date(2026, 1, 20); // February 20, 2026
+        const currentDay = today.getDate();
+
+        // State management
+        let dayStates = {};
+
+        // Load state from localStorage
+        function loadState() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    dayStates = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Failed to load state:', e);
+                    dayStates = {};
+                }
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dayStates));
+        }
+
+        // Cycle through states: none → green → yellow → red → none
+        function cycleState(day) {
+            const current = dayStates[day];
+            if (!current) {
+                dayStates[day] = 'green';
+            } else if (current === 'green') {
+                dayStates[day] = 'yellow';
+            } else if (current === 'yellow') {
+                dayStates[day] = 'red';
+            } else {
+                delete dayStates[day];
+            }
+            saveState();
+            renderCalendar();
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            let greenCount = 0;
+            let yellowCount = 0;
+            let redCount = 0;
+
+            Object.values(dayStates).forEach(state => {
+                if (state === 'green') greenCount++;
+                else if (state === 'yellow') yellowCount++;
+                else if (state === 'red') redCount++;
+            });
+
+            document.getElementById('stat-green').textContent = greenCount;
+            document.getElementById('stat-yellow').textContent = yellowCount;
+            document.getElementById('stat-red').textContent = redCount;
+        }
+
+        // Render calendar
+        function renderCalendar() {
+            const container = document.getElementById('calendar-days');
+            container.innerHTML = '';
+
+            // February 2026 starts on Sunday (day 0)
+            const firstDay = new Date(2026, 1, 1).getDay();
+            const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // Convert to Mon=0, Sun=6
+
+            const daysInMonth = 28;
+
+            // Empty cells before month starts
+            for (let i = 0; i < adjustedFirstDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'day empty';
+                container.appendChild(emptyDiv);
+            }
+
+            // Days 1-28
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day';
+                dayDiv.textContent = day;
+
+                // Days 21-28 are disabled
+                if (day > 20) {
+                    dayDiv.classList.add('disabled');
+                } else {
+                    // Clickable days
+                    dayDiv.addEventListener('click', () => cycleState(day));
+
+                    // Apply state styling
+                    const state = dayStates[day];
+                    if (state) {
+                        dayDiv.classList.add(state);
+                    }
+                }
+
+                // Mark today
+                if (day === currentDay) {
+                    dayDiv.classList.add('today');
+                }
+
+                container.appendChild(dayDiv);
+            }
+        }
+
+        // Initialize
+        loadState();
+        renderCalendar();
+        updateStats();
+    </script>
+</body>
+</html>

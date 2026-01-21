@@ -1,0 +1,86 @@
+/* DayCell Component Styles */
+
+.day-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  min-width: var(--touch-target);
+  padding: 0;
+  border: 2px solid #000000;
+  border-radius: var(--border-radius);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: clamp(1.2rem, 4vw, 2.5rem);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.day-cell:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.day-cell:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* State: Success */
+.day-cell--success {
+  background-color: var(--color-success);
+  color: white;
+  border-color: var(--color-success);
+}
+
+.day-cell--success:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* State: Warning */
+.day-cell--warning {
+  background-color: var(--color-warning);
+  color: white;
+  border-color: var(--color-warning);
+}
+
+.day-cell--warning:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* State: Fail */
+.day-cell--fail {
+  background-color: var(--color-fail);
+  color: white;
+  border-color: var(--color-fail);
+}
+
+.day-cell--fail:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* Today Indicator */
+.day-cell--today::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: #000000;
+  border-radius: 50%;
+}
+
+/* Disabled State */
+.day-cell--disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.day-cell:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frossen Februar - 8-bit Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.15) 0px,
+          transparent 1px,
+          transparent 2px,
+          rgba(0, 0, 0, 0.15) 3px
+        );
+      image-rendering: pixelated;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      color: #00ff00;
+      text-shadow:
+        3px 3px 0 #006600,
+        6px 6px 0 rgba(0, 0, 0, 0.5);
+      letter-spacing: 4px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 30px;
+      color: #ffff00;
+      text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+      letter-spacing: 2px;
+    }
+
+    .stats {
+      background: #16213e;
+      border: 4px solid #0f3460;
+      box-shadow:
+        0 0 0 2px #00ff00,
+        0 0 0 4px #0f3460,
+        8px 8px 0 rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      margin-bottom: 30px;
+      image-rendering: pixelated;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .stat-value.green { color: #00ff00; }
+    .stat-value.yellow { color: #ffff00; }
+    .stat-value.red { color: #ff0066; }
+
+    .calendar {
+      background: #16213e;
+      border: 4px solid #0f3460;
+      box-shadow:
+        0 0 0 2px #00ff00,
+        0 0 0 4px #0f3460,
+        8px 8px 0 rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    .weekday {
+      text-align: center;
+      font-weight: bold;
+      padding: 10px 5px;
+      background: #0f3460;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: #0f3460;
+      border: 3px solid #1a1a2e;
+      transition: all 0.1s;
+      position: relative;
+      image-rendering: pixelated;
+    }
+
+    .day:not(.disabled):not(.future):hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .day:not(.disabled):not(.future):active {
+      transform: translate(0, 0);
+      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .day.disabled {
+      background: #1a1a2e;
+      color: #333;
+      cursor: default;
+      border-color: #0f3460;
+    }
+
+    .day.future {
+      background: #0f3460;
+      color: #666;
+      cursor: not-allowed;
+      border-color: #1a1a2e;
+    }
+
+    .day.today {
+      border: 3px solid #ffff00;
+      box-shadow:
+        0 0 0 2px #0f3460,
+        0 0 10px #ffff00;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 2px #0f3460, 0 0 10px #ffff00; }
+      50% { box-shadow: 0 0 0 2px #0f3460, 0 0 20px #ffff00; }
+    }
+
+    .day.status-good {
+      background: #00ff00;
+      color: #000;
+      border-color: #006600;
+      box-shadow:
+        inset -3px -3px 0 rgba(0, 0, 0, 0.3),
+        inset 3px 3px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .day.status-ok {
+      background: #ffff00;
+      color: #000;
+      border-color: #999900;
+      box-shadow:
+        inset -3px -3px 0 rgba(0, 0, 0, 0.3),
+        inset 3px 3px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .day.status-bad {
+      background: #ff0066;
+      color: #fff;
+      border-color: #990033;
+      box-shadow:
+        inset -3px -3px 0 rgba(0, 0, 0, 0.3),
+        inset 3px 3px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .legend {
+      background: #16213e;
+      border: 4px solid #0f3460;
+      box-shadow:
+        0 0 0 2px #00ff00,
+        0 0 0 4px #0f3460,
+        8px 8px 0 rgba(0, 0, 0, 0.5);
+      padding: 20px;
+    }
+
+    .legend-title {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #00ff00;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .legend-items {
+      display: grid;
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legend-box {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #1a1a2e;
+      flex-shrink: 0;
+      box-shadow:
+        inset -2px -2px 0 rgba(0, 0, 0, 0.3),
+        inset 2px 2px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .legend-box.good {
+      background: #00ff00;
+      border-color: #006600;
+    }
+
+    .legend-box.ok {
+      background: #ffff00;
+      border-color: #999900;
+    }
+
+    .legend-box.bad {
+      background: #ff0066;
+      border-color: #990033;
+    }
+
+    .legend-text {
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+      }
+
+      .subtitle {
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+      }
+
+      .weekday {
+        font-size: 0.65rem;
+        padding: 8px 3px;
+      }
+
+      .day {
+        font-size: 0.85rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .calendar,
+      .stats,
+      .legend {
+        box-shadow:
+          0 0 0 2px #00ff00,
+          0 0 0 4px #0f3460,
+          4px 4px 0 rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15) 0px,
+        transparent 1px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.15) 3px
+      );
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div class="scanline"></div>
+
+  <div class="container">
+    <h1>⛄ Frossen Februar ❄️</h1>
+    <div class="subtitle">No-Spend Challenge 2025</div>
+
+    <div class="stats">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Perfekt</div>
+          <div class="stat-value green" id="stat-good">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Grei</div>
+          <div class="stat-value yellow" id="stat-ok">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Brudd</div>
+          <div class="stat-value red" id="stat-bad">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar">
+      <div class="weekdays">
+        <div class="weekday">Man</div>
+        <div class="weekday">Tir</div>
+        <div class="weekday">Ons</div>
+        <div class="weekday">Tor</div>
+        <div class="weekday">Fre</div>
+        <div class="weekday">Lør</div>
+        <div class="weekday">Søn</div>
+      </div>
+      <div class="days" id="calendar-days"></div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-title">Legend</div>
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-box good"></div>
+          <div class="legend-text">Perfekt dag (ingen kjøp)</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box ok"></div>
+          <div class="legend-text">Grei dag (nødvendig kjøp)</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box bad"></div>
+          <div class="legend-text">Brudd (unødvendig kjøp)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'frossen-februar-tracker-v1';
+    const MONTH = 1; // February (0-indexed)
+    const YEAR = 2025;
+
+    const statusCycle = [null, 'good', 'ok', 'bad'];
+
+    let dayStatuses = {};
+
+    function loadData() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          dayStatuses = JSON.parse(stored);
+        } catch (e) {
+          dayStatuses = {};
+        }
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dayStatuses));
+    }
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function getFirstDayOfMonth(year, month) {
+      const day = new Date(year, month, 1).getDay();
+      return day === 0 ? 6 : day - 1;
+    }
+
+    function isToday(year, month, day) {
+      const today = new Date();
+      return today.getFullYear() === year &&
+             today.getMonth() === month &&
+             today.getDate() === day;
+    }
+
+    function isFuture(year, month, day) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const checkDate = new Date(year, month, day);
+      return checkDate > today;
+    }
+
+    function renderCalendar() {
+      const daysContainer = document.getElementById('calendar-days');
+      daysContainer.innerHTML = '';
+
+      const daysInMonth = getDaysInMonth(YEAR, MONTH);
+      const firstDay = getFirstDayOfMonth(YEAR, MONTH);
+
+      for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'day disabled';
+        daysContainer.appendChild(emptyDay);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'day';
+        dayElement.textContent = day;
+        dayElement.dataset.day = day;
+
+        const status = dayStatuses[day];
+        if (status) {
+          dayElement.classList.add(`status-${status}`);
+        }
+
+        if (isToday(YEAR, MONTH, day)) {
+          dayElement.classList.add('today');
+        }
+
+        if (isFuture(YEAR, MONTH, day)) {
+          dayElement.classList.add('future');
+        } else {
+          dayElement.addEventListener('click', () => handleDayClick(day));
+        }
+
+        daysContainer.appendChild(dayElement);
+      }
+    }
+
+    function handleDayClick(day) {
+      const currentStatus = dayStatuses[day] || null;
+      const currentIndex = statusCycle.indexOf(currentStatus);
+      const nextIndex = (currentIndex + 1) % statusCycle.length;
+      const nextStatus = statusCycle[nextIndex];
+
+      if (nextStatus === null) {
+        delete dayStatuses[day];
+      } else {
+        dayStatuses[day] = nextStatus;
+      }
+
+      saveData();
+      renderCalendar();
+      updateStats();
+    }
+
+    function updateStats() {
+      const stats = { good: 0, ok: 0, bad: 0 };
+
+      Object.values(dayStatuses).forEach(status => {
+        if (stats[status] !== undefined) {
+          stats[status]++;
+        }
+      });
+
+      document.getElementById('stat-good').textContent = stats.good;
+      document.getElementById('stat-ok').textContent = stats.ok;
+      document.getElementById('stat-bad').textContent = stats.bad;
+    }
+
+    loadData();
+    renderCalendar();
+    updateStats();
+  </script>
+</body>
+</html>

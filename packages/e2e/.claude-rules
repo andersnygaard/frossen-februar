@@ -1,0 +1,144 @@
+# @frossen/e2e - Playwright Test Rules
+
+## Test File Pattern
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('Feature name', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
+  test('should do something', async ({ page }) => {
+    // Arrange
+    const element = page.locator('.selector');
+
+    // Act
+    await element.click();
+
+    // Assert
+    await expect(element).toHaveClass(/expected-class/);
+  });
+});
+```
+
+## Configuration
+
+Base URL: `http://localhost:5173`
+
+Before running tests, start the dev server:
+```bash
+pnpm dev  # In another terminal
+pnpm --filter @frossen/e2e test
+```
+
+## Locator Patterns
+
+Use CSS selectors matching component classes:
+
+```typescript
+// DayCell
+const dayCell = page.locator('.day-cell').first();
+const disabledDay = page.locator('.day-cell--disabled').first();
+
+// CalendarGrid
+const grid = page.locator('.calendar-grid');
+const headers = page.locator('.calendar-grid__header');
+
+// MonthSelector
+const prevButton = page.locator('button:has-text("◀")');
+const nextButton = page.locator('button:has-text("▶")');
+
+// StatsCard
+const successCard = page.locator('.stats-card--success');
+```
+
+## State Verification
+
+Use class-based assertions:
+
+```typescript
+// Check day state
+await expect(dayCell).toHaveClass(/day-cell--success/);
+await expect(dayCell).toHaveClass(/day-cell--warning/);
+await expect(dayCell).toHaveClass(/day-cell--fail/);
+await expect(dayCell).not.toHaveClass(/day-cell--success|day-cell--warning|day-cell--fail/);
+
+// Check disabled state
+await expect(disabledDay).toBeDisabled();
+```
+
+## localStorage Testing
+
+Clear before each test for isolation:
+
+```typescript
+test.beforeEach(async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+});
+```
+
+Test persistence:
+
+```typescript
+test('data persists after reload', async ({ page }) => {
+  // Make changes
+  await dayCell.click();
+
+  // Reload
+  await page.reload();
+
+  // Verify state preserved
+  await expect(dayCell).toHaveClass(/day-cell--success/);
+});
+```
+
+## Test Categories
+
+1. **Calendar interactions** - Day clicking, state cycling
+2. **Navigation** - Month prev/next, year boundary handling
+3. **Persistence** - localStorage save/load, cross-month data
+
+## No Mocking
+
+Test the real app:
+- Real DOM interactions
+- Real localStorage
+- Real state management
+- No mocked components or services
+
+## Assertions
+
+Common patterns:
+
+```typescript
+// Element exists
+await expect(element).toBeVisible();
+
+// Element has specific count
+const days = page.locator('.day-cell');
+await expect(days).toHaveCount(31);
+
+// Element has text
+await expect(monthLabel).toHaveText('Februar 2024');
+
+// Element is disabled
+await expect(futureDay).toBeDisabled();
+```
+
+## Calendar Day Count Validation
+
+Different months have different day counts:
+
+```typescript
+const expectedDays = {
+  1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30,
+  7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31,
+};
+// Note: February in leap years has 29 days
+```

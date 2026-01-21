@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frossen Februar - No-Spend Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Patrick Hand', cursive;
+      background: linear-gradient(135deg, #f5e6d3 0%, #e8d5c4 100%);
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Paper texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          rgba(139, 119, 101, 0.03) 0px,
+          transparent 1px,
+          transparent 2px,
+          rgba(139, 119, 101, 0.03) 3px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          rgba(139, 119, 101, 0.02) 0px,
+          transparent 1px,
+          transparent 2px,
+          rgba(139, 119, 101, 0.02) 3px
+        );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #faf6f0;
+      padding: 40px 30px;
+      border-radius: 3px;
+      box-shadow:
+        0 2px 4px rgba(0,0,0,0.1),
+        inset 0 0 60px rgba(139, 119, 101, 0.05);
+      position: relative;
+      z-index: 2;
+      border: 2px solid rgba(139, 119, 101, 0.15);
+    }
+
+    /* Sketchbook holes */
+    .container::before {
+      content: '';
+      position: absolute;
+      left: 20px;
+      top: 30px;
+      bottom: 30px;
+      width: 8px;
+      background:
+        radial-gradient(circle, rgba(139, 119, 101, 0.2) 40%, transparent 40%),
+        radial-gradient(circle, rgba(139, 119, 101, 0.2) 40%, transparent 40%),
+        radial-gradient(circle, rgba(139, 119, 101, 0.2) 40%, transparent 40%);
+      background-size: 8px 8px;
+      background-position: 0 0, 0 50%, 0 100%;
+      background-repeat: no-repeat;
+    }
+
+    h1 {
+      font-family: 'Caveat', cursive;
+      font-size: 3rem;
+      font-weight: 700;
+      text-align: center;
+      color: #2c1810;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 0px rgba(255,255,255,0.3);
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Indie Flower', cursive;
+      text-align: center;
+      color: #5d4e3a;
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+      font-style: italic;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.4);
+      border: 2px dashed rgba(139, 119, 101, 0.3);
+      border-radius: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      color: #3d3027;
+    }
+
+    .legend-box {
+      width: 28px;
+      height: 28px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-radius: 4px;
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .legend-box.green {
+      background: #a8d5a8;
+    }
+
+    .legend-box.yellow {
+      background: #f4d896;
+    }
+
+    .legend-box.red {
+      background: #e8a5a5;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 30px;
+    }
+
+    .day-header {
+      text-align: center;
+      font-weight: bold;
+      padding: 10px;
+      color: #2c1810;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      cursor: pointer;
+      border: 2px solid rgba(92, 78, 58, 0.3);
+      border-radius: 6px;
+      background: #fff;
+      transition: all 0.2s ease;
+      position: relative;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.08);
+      user-select: none;
+    }
+
+    .day::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      background:
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 2px,
+          rgba(139, 119, 101, 0.02) 2px,
+          rgba(139, 119, 101, 0.02) 4px
+        );
+      pointer-events: none;
+    }
+
+    .day:hover:not(.empty):not(.future) {
+      transform: translateY(-2px) rotate(0.5deg);
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .day:active:not(.empty):not(.future) {
+      transform: translateY(0) rotate(-0.5deg);
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .day.empty {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    .day.future {
+      background: #f0ebe5;
+      color: #9d8f7f;
+      cursor: not-allowed;
+      border-style: dashed;
+      opacity: 0.6;
+    }
+
+    .day.today {
+      border: 3px solid #d4a574;
+      box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.3), 2px 2px 4px rgba(0,0,0,0.08);
+      font-weight: bold;
+    }
+
+    .day.green {
+      background: #a8d5a8;
+      color: #1e5c1e;
+    }
+
+    .day.yellow {
+      background: #f4d896;
+      color: #6b5310;
+    }
+
+    .day.red {
+      background: #e8a5a5;
+      color: #7d2020;
+    }
+
+    .stats {
+      background: rgba(255, 255, 255, 0.5);
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid rgba(139, 119, 101, 0.2);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .stats-title {
+      font-family: 'Caveat', cursive;
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: #2c1810;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 6px;
+      border: 1px dashed rgba(139, 119, 101, 0.3);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #5d4e3a;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #2c1810;
+      font-family: 'Caveat', cursive;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .calendar {
+        gap: 6px;
+      }
+
+      .day {
+        font-size: 1.1rem;
+      }
+
+      .day-header {
+        font-size: 0.75rem;
+        padding: 8px 4px;
+      }
+
+      .legend {
+        gap: 12px;
+        padding: 12px;
+      }
+
+      .legend-item {
+        font-size: 0.85rem;
+      }
+
+      .legend-box {
+        width: 24px;
+        height: 24px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>❄️ Frossen Februar ❄️</h1>
+    <p class="subtitle">No-Spend Challenge Tracker</p>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-box green"></div>
+        <span>Grønn dag (0 kr brukt)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-box yellow"></div>
+        <span>Gul dag (litt brukt)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-box red"></div>
+        <span>Rød dag (mye brukt)</span>
+      </div>
+    </div>
+
+    <div class="calendar" id="calendar"></div>
+
+    <div class="stats">
+      <div class="stats-title">Statistikk</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Grønne dager</div>
+          <div class="stat-value" id="greenCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Gule dager</div>
+          <div class="stat-value" id="yellowCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Røde dager</div>
+          <div class="stat-value" id="redCount">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'frossenFebruar2026';
+    const dayHeaders = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
+    const states = ['', 'green', 'yellow', 'red'];
+
+    let dayStates = {};
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          dayStates = JSON.parse(saved);
+        } catch (e) {
+          dayStates = {};
+        }
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dayStates));
+    }
+
+    function getMonthData() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+
+      let firstDayOfWeek = firstDay.getDay();
+      firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
+      return {
+        year,
+        month,
+        firstDayOfWeek,
+        daysInMonth: lastDay.getDate(),
+        today: now.getDate()
+      };
+    }
+
+    function cycleState(day) {
+      const currentState = dayStates[day] || '';
+      const currentIndex = states.indexOf(currentState);
+      const nextIndex = (currentIndex + 1) % states.length;
+
+      if (nextIndex === 0) {
+        delete dayStates[day];
+      } else {
+        dayStates[day] = states[nextIndex];
+      }
+
+      saveState();
+      renderCalendar();
+    }
+
+    function updateStats() {
+      let greenCount = 0;
+      let yellowCount = 0;
+      let redCount = 0;
+
+      Object.values(dayStates).forEach(state => {
+        if (state === 'green') greenCount++;
+        else if (state === 'yellow') yellowCount++;
+        else if (state === 'red') redCount++;
+      });
+
+      document.getElementById('greenCount').textContent = greenCount;
+      document.getElementById('yellowCount').textContent = yellowCount;
+      document.getElementById('redCount').textContent = redCount;
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById('calendar');
+      calendar.innerHTML = '';
+
+      dayHeaders.forEach(header => {
+        const headerEl = document.createElement('div');
+        headerEl.className = 'day-header';
+        headerEl.textContent = header;
+        calendar.appendChild(headerEl);
+      });
+
+      const { firstDayOfWeek, daysInMonth, today } = getMonthData();
+
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'day empty';
+        calendar.appendChild(emptyDay);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'day';
+        dayEl.textContent = day;
+
+        if (day === today) {
+          dayEl.classList.add('today');
+        }
+
+        if (day > today) {
+          dayEl.classList.add('future');
+        } else {
+          const state = dayStates[day];
+          if (state) {
+            dayEl.classList.add(state);
+          }
+
+          dayEl.addEventListener('click', () => cycleState(day));
+        }
+
+        calendar.appendChild(dayEl);
+      }
+
+      updateStats();
+    }
+
+    loadState();
+    renderCalendar();
+  </script>
+</body>
+</html>

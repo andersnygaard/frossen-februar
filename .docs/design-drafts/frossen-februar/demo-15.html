@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frossen Februar - Split Color</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Split background - diagonal from top-right to bottom-left */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #000000 0%, #000000 50%, #FFFFFF 50%, #FFFFFF 100%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: clamp(2rem, 5vw, 4rem);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: clamp(3rem, 6vw, 5rem);
+        }
+
+        h1 {
+            font-size: clamp(3rem, 8vw, 7rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 0.95;
+            margin-bottom: clamp(1rem, 2vw, 1.5rem);
+            /* White on top (black bg), black on bottom (white bg) */
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 50%, #000000 50%, #000000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            font-weight: 500;
+            /* Inverse of title */
+            background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.7) 50%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(2rem, 4vw, 3rem);
+            margin-bottom: clamp(2rem, 4vw, 3rem);
+        }
+
+        @media (min-width: 1024px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .calendar-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: clamp(1.5rem, 3vw, 2.5rem);
+        }
+
+        .calendar-header {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 900;
+            margin-bottom: clamp(1.5rem, 3vw, 2rem);
+            color: #FFFFFF;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: clamp(0.5rem, 1vw, 0.75rem);
+        }
+
+        .day-header {
+            font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+            font-weight: 700;
+            text-align: center;
+            padding: clamp(0.5rem, 1vw, 0.75rem);
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            font-weight: 700;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+        }
+
+        .day:hover:not(.disabled):not(.empty) {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .day.empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .day.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .day.today {
+            border: 3px solid #FFFFFF;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(255, 255, 255, 0.8);
+            }
+        }
+
+        .day.green {
+            background: #10B981;
+            border-color: #10B981;
+            color: #FFFFFF;
+        }
+
+        .day.yellow {
+            background: #F59E0B;
+            border-color: #F59E0B;
+            color: #FFFFFF;
+        }
+
+        .day.red {
+            background: #EF4444;
+            border-color: #EF4444;
+            color: #FFFFFF;
+        }
+
+        .stats-section {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        .stat-label {
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            font-weight: 700;
+            margin-bottom: clamp(0.5rem, 1vw, 0.75rem);
+            color: rgba(0, 0, 0, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: clamp(3rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1;
+            color: #000000;
+        }
+
+        .stat-card.green .stat-value {
+            color: #10B981;
+        }
+
+        .stat-card.yellow .stat-value {
+            color: #F59E0B;
+        }
+
+        .stat-card.red .stat-value {
+            color: #EF4444;
+        }
+
+        .legend {
+            background: rgba(128, 128, 128, 0.05);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(128, 128, 128, 0.1);
+            border-radius: 16px;
+            padding: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        .legend-title {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            font-weight: 900;
+            margin-bottom: clamp(1rem, 2vw, 1.5rem);
+            color: #000000;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.75rem, 1.5vw, 1rem);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.75rem, 1.5vw, 1rem);
+        }
+
+        .legend-color {
+            width: clamp(2rem, 4vw, 2.5rem);
+            height: clamp(2rem, 4vw, 2.5rem);
+            border-radius: 6px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+        .legend-color.green {
+            background: #10B981;
+        }
+
+        .legend-color.yellow {
+            background: #F59E0B;
+        }
+
+        .legend-color.red {
+            background: #EF4444;
+        }
+
+        .legend-color.none {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .legend-text {
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            font-weight: 600;
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .calendar {
+                gap: 0.25rem;
+            }
+
+            .day {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Frossen Februar</h1>
+            <p class="subtitle">20 dager uten unødvendige utgifter</p>
+        </header>
+
+        <div class="main-content">
+            <div class="calendar-section">
+                <div class="calendar-header">Februar 2026</div>
+                <div class="calendar" id="calendar"></div>
+            </div>
+
+            <div class="stats-section">
+                <div class="stat-card green">
+                    <div class="stat-label">Ingen utgifter</div>
+                    <div class="stat-value" id="greenCount">0</div>
+                </div>
+
+                <div class="stat-card yellow">
+                    <div class="stat-label">Nødvendige</div>
+                    <div class="stat-value" id="yellowCount">0</div>
+                </div>
+
+                <div class="stat-card red">
+                    <div class="stat-label">Unødvendige</div>
+                    <div class="stat-value" id="redCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-title">Forklaring</div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-color green"></div>
+                    <div class="legend-text">Ingen utgifter (grønn)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color yellow"></div>
+                    <div class="legend-text">Nødvendige utgifter (gul)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color red"></div>
+                    <div class="legend-text">Unødvendige utgifter (rød)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color none"></div>
+                    <div class="legend-text">Ikke registrert (klikk for å endre)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'frossenFebruarData';
+        const today = new Date(2026, 1, 20); // February 20, 2026
+        const year = 2026;
+        const month = 1; // February (0-indexed)
+
+        let dayStatuses = loadData();
+
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dayStatuses));
+        }
+
+        function getDayStatus(day) {
+            return dayStatuses[day] || 'none';
+        }
+
+        function setDayStatus(day, status) {
+            if (status === 'none') {
+                delete dayStatuses[day];
+            } else {
+                dayStatuses[day] = status;
+            }
+            saveData();
+        }
+
+        function cycleStatus(currentStatus) {
+            const cycle = ['none', 'green', 'yellow', 'red'];
+            const currentIndex = cycle.indexOf(currentStatus);
+            return cycle[(currentIndex + 1) % cycle.length];
+        }
+
+        function updateStats() {
+            const counts = { green: 0, yellow: 0, red: 0 };
+
+            for (let day = 1; day <= 20; day++) {
+                const status = getDayStatus(day);
+                if (counts.hasOwnProperty(status)) {
+                    counts[status]++;
+                }
+            }
+
+            document.getElementById('greenCount').textContent = counts.green;
+            document.getElementById('yellowCount').textContent = counts.yellow;
+            document.getElementById('redCount').textContent = counts.red;
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            // Day headers
+            const dayHeaders = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
+            dayHeaders.forEach(header => {
+                const headerEl = document.createElement('div');
+                headerEl.className = 'day-header';
+                headerEl.textContent = header;
+                calendar.appendChild(headerEl);
+            });
+
+            // February 2026 starts on Sunday (0), so we need 6 empty cells
+            const firstDay = new Date(year, month, 1).getDay();
+            const emptyDays = firstDay === 0 ? 6 : firstDay - 1;
+
+            for (let i = 0; i < emptyDays; i++) {
+                const emptyEl = document.createElement('div');
+                emptyEl.className = 'day empty';
+                calendar.appendChild(emptyEl);
+            }
+
+            // Days 1-28
+            const daysInMonth = 28;
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'day';
+                dayEl.textContent = day;
+
+                const status = getDayStatus(day);
+                if (status !== 'none') {
+                    dayEl.classList.add(status);
+                }
+
+                // Days 21-28 are disabled
+                if (day > 20) {
+                    dayEl.classList.add('disabled');
+                } else {
+                    dayEl.addEventListener('click', () => {
+                        const currentStatus = getDayStatus(day);
+                        const newStatus = cycleStatus(currentStatus);
+                        setDayStatus(day, newStatus);
+                        renderCalendar();
+                        updateStats();
+                    });
+                }
+
+                // Mark today (day 20)
+                if (day === today.getDate()) {
+                    dayEl.classList.add('today');
+                }
+
+                calendar.appendChild(dayEl);
+            }
+        }
+
+        // Initialize
+        renderCalendar();
+        updateStats();
+    </script>
+</body>
+</html>

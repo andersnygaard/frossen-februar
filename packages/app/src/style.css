@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500&display=swap');
+@import '@frossen/ui/styles/tokens.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.app {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-md);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+  border-bottom: 4px solid #000000;
+  padding-bottom: 40px;
+}
+
+.title {
+  font-size: clamp(3rem, 12vw, 8rem);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  padding-bottom: calc(var(--space-2xl) * 2);
+}
+
+.stats-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.section-title {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-align: center;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+.onboarding-hint {
+  display: none;
+  position: absolute;
+  left: -180px;
+  top: 20px;
+  color: #e53935;
+  pointer-events: none;
+  user-select: none;
+}
+
+.onboarding-hint__text {
+  display: block;
+  font-family: 'Caveat', cursive;
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin-bottom: var(--space-xs);
+  transform: rotate(-8deg);
+}
+
+.onboarding-hint__arrow {
+  width: 200px;
+  height: 220px;
+}
+
+@media (min-width: 1200px) {
+  .onboarding-hint {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .app {
+    padding: 15px;
+  }
+
+  .header {
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom-width: 3px;
+  }
+
+  .stats {
+    gap: var(--space-sm);
+  }
+}

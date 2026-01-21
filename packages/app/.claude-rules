@@ -1,0 +1,162 @@
+# @frossen/app - Vue Application Rules
+
+## Composable Pattern
+
+State management via composables in `src/composables/`:
+
+```typescript
+import { ref, reactive, computed, watch } from 'vue';
+
+const STORAGE_KEY = 'feature-data';
+
+interface FeatureData {
+  // Type definition
+}
+
+export function useFeature() {
+  // Reactive state
+  const state = ref<Type>(initialValue);
+  const data = reactive<FeatureData>(loadFromStorage());
+
+  // Computed values
+  const derived = computed(() => /* ... */);
+
+  // Actions
+  function doAction() {
+    // Modify state
+  }
+
+  // Persistence
+  watch(data, () => saveToStorage(data), { deep: true });
+
+  // Return public API
+  return {
+    state,
+    derived,
+    doAction,
+  };
+}
+
+function loadFromStorage(): FeatureData {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveToStorage(data: FeatureData) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+```
+
+## State Cycling Pattern
+
+For toggling through states (used in useChallenge):
+
+```typescript
+const states: (State | undefined)[] = [undefined, 'state1', 'state2', 'state3'];
+const current = data[key];
+const nextIndex = (states.indexOf(current) + 1) % states.length;
+const next = states[nextIndex];
+
+if (next) {
+  data[key] = next;
+} else {
+  delete data[key];
+}
+```
+
+## Month Key Format
+
+Use "YYYY-MM" format for month keys:
+
+```typescript
+const monthKey = computed(() =>
+  `${year.value}-${String(month.value).padStart(2, '0')}`
+);
+// Result: "2024-02"
+```
+
+## Importing from @frossen/ui
+
+Import components and types:
+
+```typescript
+import { CalendarGrid, DayCell, MonthSelector, Legend, StatsCard } from '@frossen/ui';
+import type { DayState } from '@frossen/ui';
+```
+
+Import styles in main entry:
+
+```typescript
+// main.ts
+import '@frossen/ui/style.css';
+```
+
+## App.vue Structure
+
+Wire components with composable:
+
+```vue
+<script setup lang="ts">
+import { useChallenge } from './composables/useChallenge';
+import { CalendarGrid, MonthSelector, StatsCard, Legend } from '@frossen/ui';
+
+const {
+  currentMonth,
+  currentYear,
+  dayStates,
+  goToPrevMonth,
+  goToNextMonth,
+  toggleDay,
+  getStats,
+} = useChallenge();
+</script>
+
+<template>
+  <div class="app">
+    <MonthSelector
+      :month="currentMonth"
+      :year="currentYear"
+      @prev="goToPrevMonth"
+      @next="goToNextMonth"
+    />
+    <CalendarGrid
+      :month="currentMonth"
+      :year="currentYear"
+      :day-states="dayStates"
+      :today="new Date()"
+      @day-click="toggleDay"
+    />
+  </div>
+</template>
+```
+
+## No Backend
+
+This is a frontend-only PWA. All data persists in localStorage:
+
+- No API calls
+- No authentication
+- No server-side state
+- PWA for offline support
+
+## Date Handling
+
+Month is 1-indexed (1-12) in our code, 0-indexed in JavaScript Date:
+
+```typescript
+// Our format (1-12)
+const currentMonth = ref(new Date().getMonth() + 1);
+
+// JavaScript Date (0-11)
+const daysInMonth = new Date(year, month, 0).getDate();
+```
+
+Weekday conversion (Sunday=0 to Monday-first):
+```typescript
+const firstDay = new Date(year, month - 1, 1).getDay();
+const mondayFirst = firstDay === 0 ? 6 : firstDay - 1;
+```
