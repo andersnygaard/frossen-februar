@@ -1,7 +1,11 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="512" height="512" fill="#1a1a1a"/>
-
-  <!-- FF Text -->
-  <text x="256" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="320" font-weight="900" fill="white" text-anchor="middle">FF</text>
+  <rect width="512" height="512" fill="#000"/>
+  <!-- First F -->
+  <rect x="96" y="123" width="48" height="267" fill="#fff"/>
+  <rect x="96" y="123" width="133" height="48" fill="#fff"/>
+  <rect x="96" y="232" width="107" height="48" fill="#fff"/>
+  <!-- Second F -->
+  <rect x="283" y="123" width="48" height="267" fill="#fff"/>
+  <rect x="283" y="123" width="133" height="48" fill="#fff"/>
+  <rect x="283" y="232" width="107" height="48" fill="#fff"/>
 </svg>

@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#000"/>
+  <!-- First F (scaled for safe zone) -->
+  <rect x="144" y="163" width="35" height="187" fill="#fff"/>
+  <rect x="144" y="163" width="93" height="35" fill="#fff"/>
+  <rect x="144" y="237" width="75" height="35" fill="#fff"/>
+  <!-- Second F -->
+  <rect x="275" y="163" width="35" height="187" fill="#fff"/>
+  <rect x="275" y="163" width="93" height="35" fill="#fff"/>
+  <rect x="275" y="237" width="75" height="35" fill="#fff"/>
+</svg>
